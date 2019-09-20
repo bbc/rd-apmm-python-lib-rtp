@@ -5,6 +5,9 @@
 # This is an internal BBC tool and is not licensed externally
 # If you have received a copy of this erroneously then you do
 # not have permission to reproduce it.
+#
+# type: ignore
+#
 
 from __future__ import print_function
 from setuptools import setup
@@ -48,13 +51,15 @@ package_names = packages.keys()
 
 # This is where you list packages which are required
 packages_required = [
-    "six"
+    "six",
+    "flask",
+    "mypy"
 ]
 
 # This is where you list locations for packages not
 # available from pip. Each entry must be of the form:
 #  <url>#egg=<pkgname>=<version>
-# eg. https://github.com/bbc/rd-apmm-python-lib-nmos-common#egg=nmoscommon=0.1.0
+# eg.https://github.com/bbc/rd-apmm-python-lib-nmos-common#egg=nmoscommon=0.1.0
 deps_required = []
 
 setup(name=name,
