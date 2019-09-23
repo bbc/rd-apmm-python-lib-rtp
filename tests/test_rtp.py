@@ -11,6 +11,7 @@ from unittest import TestCase
 from rtp.rtp import RTP
 
 
-class Testrtp (TestCase):
+class TestRTP (TestCase):
     def test_template(self):
-        self.assertTrue(True)
+        thisRTP = RTP()
+        self.assertEqual(thisRTP.version, 2)
