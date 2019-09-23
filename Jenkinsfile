@@ -50,50 +50,52 @@ pipeline {
                         script {
                             env.lint_result = "FAILURE"
                         }
-                        bbcGithubNotify(context: "lint/flake8", status: "PENDING")
-                        sh 'flake8'
+                        bbcGithubNotify(context: "tests/lint", status: "PENDING")
+                        // Use a workdirectory in /tmp to avoid shebang length limitation
+                        sh 'tox -e lint --recreate --workdir /tmp/$(basename ${WORKSPACE})/tox-lint'
                         script {
                             env.lint_result = "SUCCESS" // This will only run if the sh above succeeded
                         }
                     }
                     post {
                         always {
-                            bbcGithubNotify(context: "lint/flake8", status: env.lint_result)
+                            bbcGithubNotify(context: "tests/lint", status: env.lint_result)
                         }
                     }
                 }
                 stage ("Type Check") {
                     steps {
                         script {
-                            env.mypy_result = "FAILURE"
+                            env.type_result = "FAILURE"
                         }
-                        bbcGithubNotify(context: "lint/mypy", status: "PENDING")
-                        sh 'mypy .'
+                        bbcGithubNotify(context: "tests/type", status: "PENDING")
+                        // Use a workdirectory in /tmp to avoid shebang length limitation
+                        sh 'tox -e typecheck --recreate --workdir /tmp/$(basename ${WORKSPACE})/tox-type'
                         script {
-                            env.mypy_result = "SUCCESS" // This will only run if the sh above succeeded
+                            env.type_result = "SUCCESS" // This will only run if the sh above succeeded
                         }
                     }
                     post {
                         always {
-                            bbcGithubNotify(context: "lint/mypy", status: env.mypy_result)
+                            bbcGithubNotify(context: "tests/type", status: env.type_result)
                         }
                     }
                 }
-                stage ("Python 3 Unit Tests") {
+                stage ("Unit Tests") {
                     steps {
                         script {
-                            env.py3_result = "FAILURE"
+                            env.unittest_result = "FAILURE"
                         }
-                        bbcGithubNotify(context: "tests/py3", status: "PENDING")
+                        bbcGithubNotify(context: "tests/unittest", status: "PENDING")
                         // Use a workdirectory in /tmp to avoid shebang length limitation
-                        sh 'tox -e py3 --recreate --workdir /tmp/$(basename ${WORKSPACE})/tox-py3'
+                        sh 'tox -e unittest --recreate --workdir /tmp/$(basename ${WORKSPACE})/tox-unittest'
                         script {
-                            env.py3_result = "SUCCESS" // This will only run if the sh above succeeded
+                            env.unittest_result = "SUCCESS" // This will only run if the sh above succeeded
                         }
                     }
                     post {
                         always {
-                            bbcGithubNotify(context: "tests/py3", status: env.py3_result)
+                            bbcGithubNotify(context: "tests/unittest", status: env.unittest_result)
                         }
                     }
                 }

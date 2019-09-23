@@ -248,7 +248,7 @@ class RTP:
         self.padding = False
         self.extension = None
         self.marker = False
-        self.payloadType = None
+        self.payloadType = PayloadType.DYNAMIC_96
         self.sequenceNumber = 0
         self.timestamp = 0
         self.ssrc = 0
@@ -284,7 +284,7 @@ class RTP:
 
     @extension.setter
     def extension(self, e: Union[Extension, None]) -> None:
-        if type(e) == Extension:
+        if (type(e) == Extension) or (e is None):
             self._extension = e
         else:
             raise AttributeError
