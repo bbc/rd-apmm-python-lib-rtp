@@ -180,9 +180,14 @@ class PayloadType(IntEnum):
 
 class CSRCList(UserList):
     def __init__(self, inList=[]):
-        map(self.csrcIsValid, inList)
+        if len(inList) > 15:
+            raise IndexError
 
-        self += inList
+        self.data = []
+
+        for x in inList:
+            self.csrcIsValid(x)
+            self.data.append(x)
 
     def __add__(self, value: Iterable[int]) -> 'CSRCList':
         newList = CSRCList(self)
@@ -195,15 +200,26 @@ class CSRCList(UserList):
         return self
 
     def extend(self, value: Iterable[int]) -> None:
-        map(self.append, value)
+        if len(self.data) + len(list(value)) > 15:
+            raise IndexError
+
+        for x in value:
+            self.append(x)
 
     def append(self, value: int) -> None:
+        if len(self.data) == 15:
+            raise IndexError
+
         self.csrcIsValid(value)
+
         self.data.append(value)
 
-    def insert(self, value: int, x: int) -> None:
-        self.csrcIsValid(value)
-        self.data.insert(value, x)
+    def insert(self, i: int, x: int) -> None:
+        if (i < 0) or (i >= len(self.data)):
+            raise IndexError
+        self.csrcIsValid(x)
+
+        self.data.insert(i, x)
 
     def csrcIsValid(self, value: int) -> None:
         if type(value) != int:
@@ -214,7 +230,7 @@ class CSRCList(UserList):
 
 class Extension:
     def __init__(self):
-        self.startBits = b''
+        self.startBits = b'\x00\x00'
         self.headerExtension = b''
 
     @property
@@ -238,6 +254,10 @@ class Extension:
     def headerExtension(self, s: bytes) -> None:
         if type(s) != bytes:
             raise AttributeError
+        elif (len(s) % 4) != 0:
+            raise ValueError
+        elif (len(s)/4) > ((2**16) - 1):
+            raise ValueError
         else:
             self._headerExtension = s
 
@@ -246,12 +266,12 @@ class RTP:
     def __init__(self):
         self.version = 2
         self.padding = False
-        self.extension = None
         self.marker = False
         self.payloadType = PayloadType.DYNAMIC_96
         self.sequenceNumber = 0
         self.timestamp = 0
         self.ssrc = 0
+        self.extension = None
         self._csrcList = CSRCList()
         self.payload = b''
 
