@@ -1,6 +1,10 @@
 from enum import IntEnum
 from collections import UserList
-from typing import Union, List, Iterable
+from typing import Union, Iterable
+
+
+class LengthError(Exception):
+    pass
 
 
 class PayloadType(IntEnum):
@@ -181,7 +185,7 @@ class PayloadType(IntEnum):
 class CSRCList(UserList):
     def __init__(self, inList=[]):
         if len(inList) > 15:
-            raise IndexError
+            raise LengthError("CSRC list length too long. Max length is 15.")
 
         self.data = []
 
@@ -201,65 +205,110 @@ class CSRCList(UserList):
 
     def extend(self, value: Iterable[int]) -> None:
         if len(self.data) + len(list(value)) > 15:
-            raise IndexError
+            raise LengthError(
+                "Extending would make CSRC list length too long. "
+                "Max length is 15.")
 
         for x in value:
             self.append(x)
 
     def append(self, value: int) -> None:
         if len(self.data) == 15:
-            raise IndexError
+            raise LengthError(
+                "Appending would make CSRC list length too long. "
+                "Max length is 15.")
 
         self.csrcIsValid(value)
 
         self.data.append(value)
 
     def insert(self, i: int, x: int) -> None:
-        if (i < 0) or (i >= len(self.data)):
-            raise IndexError
+        if (i < 0) or (i > len(self.data)) or (i >= 15):
+            raise IndexError(
+                "CSRC list index must be in range 0-15 and cannot leave gaps")
         self.csrcIsValid(x)
 
         self.data.insert(i, x)
 
     def csrcIsValid(self, value: int) -> None:
         if type(value) != int:
-            raise AttributeError
+            raise AttributeError(
+                "CSRC values must be unsigned 32-bit integers")
         elif (value < 0) or (value >= 2**32):
-            raise ValueError
+            raise ValueError("CSRC values must be unsigned 32-bit integers")
 
 
 class Extension:
     def __init__(self):
-        self.startBits = b'\x00\x00'
-        self.headerExtension = b''
+        self.startBits = bytearray(2)
+        self.headerExtension = bytearray()
+
+    def __eq__(self, other) -> bool:
+        return (
+            (type(self) == type(other)) and
+            (self.startBits == other.startBits) and
+            (self.headerExtension == other.headerExtension))
 
     @property
-    def startBits(self) -> bytes:
+    def startBits(self) -> bytearray:
         return self._startBits
 
     @startBits.setter
-    def startBits(self, s: bytes) -> None:
-        if type(s) != bytes:
-            raise AttributeError
+    def startBits(self, s: bytearray) -> None:
+        if type(s) != bytearray:
+            raise AttributeError("Extension startBits must be bytearray")
         elif len(s) != 2:
-            raise ValueError
+            raise LengthError("Extension startBits must be 2 bytes long")
         else:
             self._startBits = s
 
     @property
-    def headerExtension(self) -> bytes:
+    def headerExtension(self) -> bytearray:
         return self._headerExtension
 
     @headerExtension.setter
-    def headerExtension(self, s: bytes) -> None:
-        if type(s) != bytes:
-            raise AttributeError
+    def headerExtension(self, s: bytearray) -> None:
+        if type(s) != bytearray:
+            raise AttributeError("Extension headerExtension must be bytearray")
         elif (len(s) % 4) != 0:
-            raise ValueError
+            raise LengthError(
+                "Extension headerExtension must be 32-bit aligned")
         elif (len(s)/4) > ((2**16) - 1):
-            raise ValueError
+            raise LengthError(
+                "Extension headerExtension must be fewer than 2**16 words")
         else:
             self._headerExtension = s
+
+    def fromBytearray(self, inBytes: bytearray) -> 'Extension':
+        length = int.from_bytes(inBytes[2:4], byteorder='big')
+        if ((len(inBytes)/4) - 1) != int(length):
+            raise LengthError(
+                "Extension bytearray length doesn't match length field")
+
+        self.startBits = inBytes[0:2]
+        self.headerExtension = inBytes[4:]
+
+        return self
+
+    def toBytearray(self) -> bytearray:
+        heLen = len(self.headerExtension)
+
+        # Align to 32bits (4 bytes)
+        heLenWords = heLen/4
+
+        # Add on bytes for startBits & length
+        extLen = heLen + 4
+
+        bArray = bytearray(extLen)
+
+        bArray[0:2] = self.startBits
+        bArray[2:4] = int(heLenWords).to_bytes(2, byteorder='big')
+        bArray[4:extLen] = self.headerExtension
+
+        return bArray
+
+    def __bytes__(self) -> bytes:
+        return bytes(self.toBytearray())
 
 
 class RTP:
@@ -273,7 +322,21 @@ class RTP:
         self.ssrc = 0
         self.extension = None
         self._csrcList = CSRCList()
-        self.payload = b''
+        self.payload = bytearray()
+
+    def __eq__(self, other) -> bool:
+        return (
+            (type(self) == type(other)) and
+            (self.version == other.version) and
+            (self.padding == other.padding) and
+            (self.marker == other.marker) and
+            (self.payloadType == other.payloadType) and
+            (self.sequenceNumber == other.sequenceNumber) and
+            (self.timestamp == other.timestamp) and
+            (self.ssrc == other.ssrc) and
+            (self.extension == other.extension) and
+            (self.csrcList == other.csrcList) and
+            (self.payload == other.payload))
 
     @property
     def version(self) -> int:
@@ -296,7 +359,7 @@ class RTP:
         if type(p) == bool:
             self._padding = p
         else:
-            raise AttributeError
+            raise AttributeError("Padding value must be boolean")
 
     @property
     def extension(self) -> Union[Extension, None]:
@@ -307,7 +370,8 @@ class RTP:
         if (type(e) == Extension) or (e is None):
             self._extension = e
         else:
-            raise AttributeError
+            raise AttributeError(
+                "Extension value type must be Extension or None")
 
     @property
     def marker(self) -> bool:
@@ -318,7 +382,7 @@ class RTP:
         if type(m) == bool:
             self._marker = m
         else:
-            raise AttributeError
+            raise AttributeError("Marker value must be boolean")
 
     @property
     def payloadType(self) -> PayloadType:
@@ -329,7 +393,7 @@ class RTP:
         if type(p) == PayloadType:
             self._payloadType = p
         else:
-            raise AttributeError
+            raise AttributeError("PayloadType value must be PayloadType")
 
     @property
     def sequenceNumber(self) -> int:
@@ -338,9 +402,9 @@ class RTP:
     @sequenceNumber.setter
     def sequenceNumber(self, s: int) -> None:
         if type(s) != int:
-            raise AttributeError
+            raise AttributeError("SequenceNumber value must be integer")
         elif (s < 0) or (s >= 2**16):
-            raise ValueError
+            raise ValueError("SequenceNumber must be in range 0-2**16")
         else:
             self._sequenceNumber = s
 
@@ -351,9 +415,9 @@ class RTP:
     @timestamp.setter
     def timestamp(self, t: int) -> None:
         if type(t) != int:
-            raise AttributeError
+            raise AttributeError("Timestamp value must be integer")
         elif (t < 0) or (t >= 2**32):
-            raise ValueError
+            raise ValueError("Timestamp must be in range 0-2**32")
         else:
             self._timestamp = t
 
@@ -364,29 +428,101 @@ class RTP:
     @ssrc.setter
     def ssrc(self, s: int) -> None:
         if type(s) != int:
-            raise AttributeError
+            raise AttributeError("SSRC value must be integer")
         elif (s < 0) or (s >= 2**32):
-            raise ValueError
+            raise ValueError("SSRC must be in range 0-2**32")
         else:
             self._ssrc = s
 
     @property
-    def csrcList(self) -> List[CSRCList]:
+    def csrcList(self) -> CSRCList:
         return self._csrcList
 
     @property
-    def payload(self) -> bytes:
+    def payload(self) -> bytearray:
         return self._payload
 
     @payload.setter
-    def payload(self, p) -> None:
-        if type(p) != bytes:
-            raise AttributeError
+    def payload(self, p: bytearray) -> None:
+        if type(p) != bytearray:
+            raise AttributeError("Payload value must be bytearray")
         else:
             self._payload = p
 
-    def fromBitstream(self, bits):
-        pass
+    def fromBytearray(self, packet: bytearray) -> 'RTP':
+        self.version = (packet[0] >> 6) & 3
+        self.padding = ((packet[0] >> 5) & 1) == 1
+        hasExtension = ((packet[0] >> 4) & 1) == 1
+        csrcListLen = packet[0] & 0x0f
 
-    def toBitstream(self):
-        pass
+        self.marker = ((packet[1] >> 7) & 1) == 1
+        self.payloadType = PayloadType(packet[1] & 0x7f)
+
+        self.sequenceNumber = int.from_bytes(packet[2:4], byteorder='big')
+
+        self.timestamp = int.from_bytes(packet[4:8], byteorder='big')
+
+        self.ssrc = int.from_bytes(packet[8:12], byteorder='big')
+
+        for x in range(csrcListLen):
+            startIndex = 12 + (4*x)
+            endIndex = 12 + 4 + (4*x)
+            self.csrcList.append(
+                int.from_bytes(packet[startIndex: endIndex], byteorder='big'))
+
+        extStart = 12 + (4*csrcListLen)
+        payloadStart = extStart
+
+        if hasExtension:
+            extLen = int.from_bytes(
+                packet[extStart+2:extStart+4], byteorder='big')
+            payloadStart += (extLen + 1) * 4
+            self.extension = Extension().fromBytearray(
+                packet[extStart:payloadStart])
+
+        self.payload = packet[payloadStart:]
+
+        return self
+
+    def toBytearray(self) -> bytearray:
+        packetLen = 12
+        packetLen += 4 * len(self.csrcList)
+
+        extensionStartIndex = packetLen
+        payloadStartIndex = extensionStartIndex
+
+        if self.extension is not None:
+            payloadStartIndex += len(bytes(self.extension))
+            packetLen = payloadStartIndex
+
+        packetLen += len(self.payload)
+
+        packet = bytearray(packetLen)
+
+        packet[0] = self.version << 6
+        packet[0] |= self.padding << 5
+        packet[0] |= (self.extension is not None) << 4
+        packet[0] |= len(self.csrcList)
+
+        packet[1] = self.marker << 7
+        packet[1] |= self.payloadType.value
+
+        packet[2:4] = self.sequenceNumber.to_bytes(2, byteorder='big')
+
+        packet[4:8] = self.timestamp.to_bytes(4, byteorder='big')
+
+        packet[8:12] = self.ssrc.to_bytes(4, byteorder='big')
+
+        for x in range(len(self.csrcList)):
+            startIndex = 12 + (4*x)
+            endIndex = 12 + 4 + (4*x)
+            packet[startIndex: endIndex] = self.csrcList[x].to_bytes(
+                4, byteorder='big')
+
+        if self.extension is not None:
+            packet[extensionStartIndex:payloadStartIndex] = bytes(
+                self.extension)
+
+        packet[payloadStartIndex:] = self.payload
+
+        return packet

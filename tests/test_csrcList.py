@@ -9,7 +9,7 @@
 from unittest import TestCase
 from hypothesis import given, strategies as st
 
-from rtp.rtp import CSRCList
+from rtp.rtp import CSRCList, LengthError
 
 
 class TestCSRCList (TestCase):
@@ -31,7 +31,7 @@ class TestCSRCList (TestCase):
     @given(st.lists(st.integers(
         min_value=0, max_value=(2**16)-1), min_size=16))
     def test_csrc_init_too_big(self, value):
-        with self.assertRaises(IndexError):
+        with self.assertRaises(LengthError):
             CSRCList(value)
 
     @given(st.integers(min_value=0, max_value=(2**16)-1))
@@ -42,7 +42,7 @@ class TestCSRCList (TestCase):
     def test_csrc_max_append(self):
         maxCSRCList = CSRCList([0]*15)
         self.assertEqual(len(maxCSRCList), 15)
-        with self.assertRaises(IndexError):
+        with self.assertRaises(LengthError):
             maxCSRCList.append(0)
 
     @given(st.lists(st.integers(
@@ -56,7 +56,7 @@ class TestCSRCList (TestCase):
     def test_csrc_max_extend(self, value):
         maxCSRCList = CSRCList(value)
         appendLen = 16 - len(maxCSRCList)
-        with self.assertRaises(IndexError):
+        with self.assertRaises(LengthError):
             maxCSRCList.extend([0] * appendLen)
 
     @given(st.lists(st.integers(
@@ -90,6 +90,12 @@ class TestCSRCList (TestCase):
 
         with self.assertRaises(IndexError):
             newCSRCList.insert(len(baseList), 1)
+
+        baseList = [0]*13
+        newCSRCList = CSRCList(baseList)
+
+        with self.assertRaises(IndexError):
+            newCSRCList.insert(15, 1)
 
     @given(st.integers(min_value=0, max_value=(2**32) - 1))
     def test_csrcIsValid(self, value):
