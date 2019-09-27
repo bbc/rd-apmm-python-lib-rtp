@@ -7,7 +7,7 @@ This python library provides a means to decode, encode, and interact with RTP pa
 from rtp import *
 from copy import deepcopy
 
-basreRTP = RTP(
+baseRTP = RTP(
     marker=True,
     payloadType=PayloadType.L16_2chan,
     extension=Extension(
