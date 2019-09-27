@@ -1,259 +1,83 @@
-from enum import IntEnum
-from collections import UserList
-from typing import Union, List, Iterable
-
-
-class PayloadType(IntEnum):
-    # Types and type numbers from RFC 3551.
-    # Types are in the first instance named '<encoding_name>'.
-    # Where multiple types exist for the same encoding name,
-    # types are named '<encoding_name>_<clock_rate>Hz' where multiple clock
-    # rates exist or '<encoding_name>_<channels>chan' where multiple numbers of
-    # channels exist. Where all are equal, the name is '<encoding_name>_<PT>'.
-    PCMU = 0
-    RESERVED_1 = 1
-    RESERVED_2 = 2
-    GSM = 3
-    G723 = 4
-    DVI4_8000Hz = 5
-    DVI4_16000Hz = 6
-    LPC = 7
-    PCMA = 8
-    G722 = 9
-    L16_2chan = 10
-    L16_1chan = 11
-    QCELP = 12
-    CN = 13
-    MPA = 14
-    G728 = 15
-    DVI4_11025Hz = 16
-    DVI4_22050Hz = 17
-    G729 = 18
-    RESERVED_19 = 19
-    UNASSIGNED_20 = 20
-    UNASSIGNED_21 = 21
-    UNASSIGNED_22 = 22
-    UNASSIGNED_23 = 23
-    UNASSIGNED_24 = 24
-    CELB = 25
-    JPEG = 26
-    UNASSIGNED_27 = 27
-    NV = 28
-    UNASSIGNED_29 = 29
-    UNASSIGNED_30 = 30
-    H261 = 31
-    MPV = 32
-    MP2T = 33
-    H263 = 34
-    UNASSIGNED_35 = 35
-    UNASSIGNED_36 = 36
-    UNASSIGNED_37 = 37
-    UNASSIGNED_38 = 38
-    UNASSIGNED_39 = 39
-    UNASSIGNED_40 = 40
-    UNASSIGNED_41 = 41
-    UNASSIGNED_42 = 42
-    UNASSIGNED_43 = 43
-    UNASSIGNED_44 = 44
-    UNASSIGNED_45 = 45
-    UNASSIGNED_46 = 46
-    UNASSIGNED_47 = 47
-    UNASSIGNED_48 = 48
-    UNASSIGNED_49 = 49
-    UNASSIGNED_50 = 50
-    UNASSIGNED_51 = 51
-    UNASSIGNED_52 = 52
-    UNASSIGNED_53 = 53
-    UNASSIGNED_54 = 54
-    UNASSIGNED_55 = 55
-    UNASSIGNED_56 = 56
-    UNASSIGNED_57 = 57
-    UNASSIGNED_58 = 58
-    UNASSIGNED_59 = 59
-    UNASSIGNED_60 = 60
-    UNASSIGNED_61 = 61
-    UNASSIGNED_62 = 62
-    UNASSIGNED_63 = 63
-    UNASSIGNED_64 = 64
-    UNASSIGNED_65 = 65
-    UNASSIGNED_66 = 66
-    UNASSIGNED_67 = 67
-    UNASSIGNED_68 = 68
-    UNASSIGNED_69 = 69
-    UNASSIGNED_70 = 70
-    UNASSIGNED_71 = 71
-    RESERVED_72 = 72
-    RESERVED_73 = 73
-    RESERVED_74 = 74
-    RESERVED_75 = 75
-    RESERVED_76 = 76
-    UNASSIGNED_77 = 77
-    UNASSIGNED_78 = 78
-    UNASSIGNED_79 = 79
-    UNASSIGNED_80 = 80
-    UNASSIGNED_81 = 81
-    UNASSIGNED_82 = 82
-    UNASSIGNED_83 = 83
-    UNASSIGNED_84 = 84
-    UNASSIGNED_85 = 85
-    UNASSIGNED_86 = 86
-    UNASSIGNED_87 = 87
-    UNASSIGNED_88 = 88
-    UNASSIGNED_89 = 89
-    UNASSIGNED_90 = 90
-    UNASSIGNED_91 = 91
-    UNASSIGNED_92 = 92
-    UNASSIGNED_93 = 93
-    UNASSIGNED_94 = 94
-    UNASSIGNED_95 = 95
-    DYNAMIC_96 = 96
-    DYNAMIC_97 = 97
-    DYNAMIC_98 = 98
-    DYNAMIC_99 = 99
-    DYNAMIC_100 = 100
-    DYNAMIC_101 = 101
-    DYNAMIC_102 = 102
-    DYNAMIC_103 = 103
-    DYNAMIC_104 = 104
-    DYNAMIC_105 = 105
-    DYNAMIC_106 = 106
-    DYNAMIC_107 = 107
-    DYNAMIC_108 = 108
-    DYNAMIC_109 = 109
-    DYNAMIC_110 = 110
-    DYNAMIC_111 = 111
-    DYNAMIC_112 = 112
-    DYNAMIC_113 = 113
-    DYNAMIC_114 = 114
-    DYNAMIC_115 = 115
-    DYNAMIC_116 = 116
-    DYNAMIC_117 = 117
-    DYNAMIC_118 = 118
-    DYNAMIC_119 = 119
-    DYNAMIC_120 = 120
-    DYNAMIC_121 = 121
-    DYNAMIC_122 = 122
-    DYNAMIC_123 = 123
-    DYNAMIC_124 = 124
-    DYNAMIC_125 = 125
-    DYNAMIC_126 = 126
-    DYNAMIC_127 = 127
-
-    @classmethod
-    def _unassignedList(self) -> list:
-        uList = list(range(20, 25))
-        uList += [27]
-        uList += list(range(29, 31))
-        uList += list(range(35, 72))
-        uList += list(range(77, 96))
-
-        return uList
-
-    @classmethod
-    def _reservedList(self) -> list:
-        _rList = list(range(1, 3))
-        _rList += [19]
-        _rList += list(range(72, 77))
-
-        return _rList
-
-    def isAudio(self) -> bool:
-        # MP2T (33) is AV so we return True
-        return (self.value <= 23) or (self.value == 33)
-
-    def isVideo(self) -> bool:
-        # MP2T (33) is AV so we return True
-        return (self.value >= 24) and (self.value <= 34)
-
-    def isAV(self) -> bool:
-        return self.value == 33
-
-    def isDynamic(self) -> bool:
-        return self.value >= 96
-
-    def isUnassigned(self) -> bool:
-        return self.value in self._unassignedList()
-
-    def isReserved(self) -> bool:
-        return self.value in self._reservedList()
-
-
-class CSRCList(UserList):
-    def __init__(self, inList=[]):
-        map(self.csrcIsValid, inList)
-
-        self += inList
-
-    def __add__(self, value: Iterable[int]) -> 'CSRCList':
-        newList = CSRCList(self)
-        newList += value
-        return newList
-
-    def __iadd__(self, value: Iterable[int]) -> 'CSRCList':
-        self.extend(value)
-
-        return self
-
-    def extend(self, value: Iterable[int]) -> None:
-        map(self.append, value)
-
-    def append(self, value: int) -> None:
-        self.csrcIsValid(value)
-        self.data.append(value)
-
-    def insert(self, value: int, x: int) -> None:
-        self.csrcIsValid(value)
-        self.data.insert(value, x)
-
-    def csrcIsValid(self, value: int) -> None:
-        if type(value) != int:
-            raise AttributeError
-        elif (value < 0) or (value >= 2**32):
-            raise ValueError
-
-
-class Extension:
-    def __init__(self):
-        self.startBits = b''
-        self.headerExtension = b''
-
-    @property
-    def startBits(self) -> bytes:
-        return self._startBits
-
-    @startBits.setter
-    def startBits(self, s: bytes) -> None:
-        if type(s) != bytes:
-            raise AttributeError
-        elif len(s) != 2:
-            raise ValueError
-        else:
-            self._startBits = s
-
-    @property
-    def headerExtension(self) -> bytes:
-        return self._headerExtension
-
-    @headerExtension.setter
-    def headerExtension(self, s: bytes) -> None:
-        if type(s) != bytes:
-            raise AttributeError
-        else:
-            self._headerExtension = s
+from typing import Union, Iterable
+from random import randint
+from .payloadType import PayloadType
+from .csrcList import CSRCList
+from .extension import Extension
 
 
 class RTP:
-    def __init__(self):
-        self.version = 2
-        self.padding = False
-        self.extension = None
-        self.marker = False
-        self.payloadType = PayloadType.DYNAMIC_96
-        self.sequenceNumber = 0
-        self.timestamp = 0
-        self.ssrc = 0
+    '''
+    A data structure for storing RTP packets as defined by RFC 3550.
+
+    Attributes:
+        version (int): The RTP version. MUST be set to ``2``.
+        padding (bool): If set to true, the packet contains extra padding.
+        marker (bool): The interpretation of the marker bit is defined by the
+            payload profile.
+        payloadType (PayloadType): Identifies the format of the payload.
+        sequenceNumber (int): The sequence number of the packet. Must be in the
+            range ``0 <= x < 2**16``
+        timestamp (int): The timestamp of the packet. Must be in the range
+            ``0 <= x < 2**32``
+        ssrc (int): The Synchronization Source Identifier. Must be in the range
+            ``0 <= x < 2**32``
+        extension (:obj:`Extension`): A header extension. May be ``None``.
+        csrcList (:obj:`CSRCList`): The CSRC list.
+        payload (bytearray): The RTP payload.
+
+    '''
+
+    def __init__(
+       self,
+       version: int = 2,
+       padding: bool = False,
+       marker: bool = False,
+       payloadType: PayloadType = PayloadType.DYNAMIC_96,
+       sequenceNumber: int = None,
+       timestamp: int = 0,
+       ssrc: int = None,
+       extension: Union[Extension, None] = None,
+       csrcList: Iterable[int] = None,
+       payload: bytearray = None):
+        self.version = version
+        self.padding = padding
+        self.marker = marker
+        self.payloadType = payloadType
+        self.timestamp = timestamp
+        self.ssrc = timestamp
+        self.extension = extension
         self._csrcList = CSRCList()
-        self.payload = b''
+        self.payload = bytearray()
+
+        if sequenceNumber is None:
+            self.sequenceNumber = randint(0, (2**16)-1)
+        else:
+            self.sequenceNumber = sequenceNumber
+
+        if ssrc is None:
+            self.ssrc = randint(0, (2**32)-1)
+        else:
+            self.ssrc = ssrc
+
+        if csrcList is not None:
+            self.csrcList.extend(csrcList)
+
+        if payload is not None:
+            self.payload = payload
+
+    def __eq__(self, other) -> bool:
+        return (
+            (type(self) == type(other)) and
+            (self.version == other.version) and
+            (self.padding == other.padding) and
+            (self.marker == other.marker) and
+            (self.payloadType == other.payloadType) and
+            (self.sequenceNumber == other.sequenceNumber) and
+            (self.timestamp == other.timestamp) and
+            (self.ssrc == other.ssrc) and
+            (self.extension == other.extension) and
+            (self.csrcList == other.csrcList) and
+            (self.payload == other.payload))
 
     @property
     def version(self) -> int:
@@ -276,7 +100,7 @@ class RTP:
         if type(p) == bool:
             self._padding = p
         else:
-            raise AttributeError
+            raise AttributeError("Padding value must be boolean")
 
     @property
     def extension(self) -> Union[Extension, None]:
@@ -287,7 +111,8 @@ class RTP:
         if (type(e) == Extension) or (e is None):
             self._extension = e
         else:
-            raise AttributeError
+            raise AttributeError(
+                "Extension value type must be Extension or None")
 
     @property
     def marker(self) -> bool:
@@ -298,7 +123,7 @@ class RTP:
         if type(m) == bool:
             self._marker = m
         else:
-            raise AttributeError
+            raise AttributeError("Marker value must be boolean")
 
     @property
     def payloadType(self) -> PayloadType:
@@ -309,7 +134,7 @@ class RTP:
         if type(p) == PayloadType:
             self._payloadType = p
         else:
-            raise AttributeError
+            raise AttributeError("PayloadType value must be PayloadType")
 
     @property
     def sequenceNumber(self) -> int:
@@ -318,9 +143,9 @@ class RTP:
     @sequenceNumber.setter
     def sequenceNumber(self, s: int) -> None:
         if type(s) != int:
-            raise AttributeError
+            raise AttributeError("SequenceNumber value must be integer")
         elif (s < 0) or (s >= 2**16):
-            raise ValueError
+            raise ValueError("SequenceNumber must be in range 0-2**16")
         else:
             self._sequenceNumber = s
 
@@ -331,9 +156,9 @@ class RTP:
     @timestamp.setter
     def timestamp(self, t: int) -> None:
         if type(t) != int:
-            raise AttributeError
+            raise AttributeError("Timestamp value must be integer")
         elif (t < 0) or (t >= 2**32):
-            raise ValueError
+            raise ValueError("Timestamp must be in range 0-2**32")
         else:
             self._timestamp = t
 
@@ -344,29 +169,109 @@ class RTP:
     @ssrc.setter
     def ssrc(self, s: int) -> None:
         if type(s) != int:
-            raise AttributeError
+            raise AttributeError("SSRC value must be integer")
         elif (s < 0) or (s >= 2**32):
-            raise ValueError
+            raise ValueError("SSRC must be in range 0-2**32")
         else:
             self._ssrc = s
 
     @property
-    def csrcList(self) -> List[CSRCList]:
+    def csrcList(self) -> CSRCList:
         return self._csrcList
 
     @property
-    def payload(self) -> bytes:
+    def payload(self) -> bytearray:
         return self._payload
 
     @payload.setter
-    def payload(self, p) -> None:
-        if type(p) != bytes:
-            raise AttributeError
+    def payload(self, p: bytearray) -> None:
+        if type(p) != bytearray:
+            raise AttributeError("Payload value must be bytearray")
         else:
             self._payload = p
 
-    def fromBitstream(self, bits):
-        pass
+    def fromBytearray(self, packet: bytearray) -> 'RTP':
+        '''
+        Populate instance from a bytearray.
+        '''
 
-    def toBitstream(self):
-        pass
+        self.version = (packet[0] >> 6) & 3
+        self.padding = ((packet[0] >> 5) & 1) == 1
+        hasExtension = ((packet[0] >> 4) & 1) == 1
+        csrcListLen = packet[0] & 0x0f
+
+        self.marker = ((packet[1] >> 7) & 1) == 1
+        self.payloadType = PayloadType(packet[1] & 0x7f)
+
+        self.sequenceNumber = int.from_bytes(packet[2:4], byteorder='big')
+
+        self.timestamp = int.from_bytes(packet[4:8], byteorder='big')
+
+        self.ssrc = int.from_bytes(packet[8:12], byteorder='big')
+
+        for x in range(csrcListLen):
+            startIndex = 12 + (4*x)
+            endIndex = 12 + 4 + (4*x)
+            self.csrcList.append(
+                int.from_bytes(packet[startIndex: endIndex], byteorder='big'))
+
+        extStart = 12 + (4*csrcListLen)
+        payloadStart = extStart
+
+        if hasExtension:
+            extLen = int.from_bytes(
+                packet[extStart+2:extStart+4], byteorder='big')
+            payloadStart += (extLen + 1) * 4
+            self.extension = Extension().fromBytearray(
+                packet[extStart:payloadStart])
+
+        self.payload = packet[payloadStart:]
+
+        return self
+
+    def toBytearray(self) -> bytearray:
+        '''
+        Encode instance as a bytearray.
+        '''
+
+        packetLen = 12
+        packetLen += 4 * len(self.csrcList)
+
+        extensionStartIndex = packetLen
+        payloadStartIndex = extensionStartIndex
+
+        if self.extension is not None:
+            payloadStartIndex += len(bytes(self.extension))
+            packetLen = payloadStartIndex
+
+        packetLen += len(self.payload)
+
+        packet = bytearray(packetLen)
+
+        packet[0] = self.version << 6
+        packet[0] |= self.padding << 5
+        packet[0] |= (self.extension is not None) << 4
+        packet[0] |= len(self.csrcList)
+
+        packet[1] = self.marker << 7
+        packet[1] |= self.payloadType.value
+
+        packet[2:4] = self.sequenceNumber.to_bytes(2, byteorder='big')
+
+        packet[4:8] = self.timestamp.to_bytes(4, byteorder='big')
+
+        packet[8:12] = self.ssrc.to_bytes(4, byteorder='big')
+
+        for x in range(len(self.csrcList)):
+            startIndex = 12 + (4*x)
+            endIndex = 12 + 4 + (4*x)
+            packet[startIndex: endIndex] = self.csrcList[x].to_bytes(
+                4, byteorder='big')
+
+        if self.extension is not None:
+            packet[extensionStartIndex:payloadStartIndex] = bytes(
+                self.extension)
+
+        packet[payloadStartIndex:] = self.payload
+
+        return packet
