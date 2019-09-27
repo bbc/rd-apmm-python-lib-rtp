@@ -99,16 +99,16 @@ class TestCSRCList (TestCase):
 
     @given(st.integers(min_value=0, max_value=(2**32) - 1))
     def test_csrcIsValid(self, value):
-        self.thisCSRCList.csrcIsValid(value)
+        self.thisCSRCList._csrcIsValid(value)
 
     def test_csrcIsValid_invalid(self):
         with self.assertRaises(AttributeError):
-            self.thisCSRCList.csrcIsValid("")
+            self.thisCSRCList._csrcIsValid("")
 
         with self.assertRaises(ValueError):
-            self.thisCSRCList.csrcIsValid(2**32)
+            self.thisCSRCList._csrcIsValid(2**32)
 
     @given(st.integers(max_value=-1))
     def test_csrcIsValid_tooSmall(self, value):
         with self.assertRaises(ValueError):
-            self.thisCSRCList.csrcIsValid(value)
+            self.thisCSRCList._csrcIsValid(value)

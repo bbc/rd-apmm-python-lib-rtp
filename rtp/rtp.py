@@ -8,12 +8,15 @@ class LengthError(Exception):
 
 
 class PayloadType(IntEnum):
-    # Types and type numbers from RFC 3551.
-    # Types are in the first instance named '<encoding_name>'.
-    # Where multiple types exist for the same encoding name,
-    # types are named '<encoding_name>_<clock_rate>Hz' where multiple clock
-    # rates exist or '<encoding_name>_<channels>chan' where multiple numbers of
-    # channels exist. Where all are equal, the name is '<encoding_name>_<PT>'.
+    '''
+    Types and type numbers from RFC 3551.
+    Types are in the first instance named ``<encoding_name>``.
+    Where multiple types exist for the same encoding name,
+    types are named ``<encoding_name>_<clock_rate>Hz`` where multiple clock
+    rates exist or ``<encoding_name>_<channels>chan`` where multiple numbers of
+    channels exist. Where all are equal, the name is ``<encoding_name>_<PT>``.
+    '''
+
     PCMU = 0
     RESERVED_1 = 1
     RESERVED_2 = 2
@@ -162,27 +165,57 @@ class PayloadType(IntEnum):
         return _rList
 
     def isAudio(self) -> bool:
-        # MP2T (33) is AV so we return True
+        '''
+        Is instance media type audio. Note MP2T is AV and this will return
+        ``True``.
+        '''
+
         return (self.value <= 23) or (self.value == 33)
 
     def isVideo(self) -> bool:
-        # MP2T (33) is AV so we return True
+        '''
+        Is instance media type video. Note MP2T is AV and this will return
+        ``True``.
+        '''
+
         return (self.value >= 24) and (self.value <= 34)
 
     def isAV(self) -> bool:
+        '''
+        Is instance media type AV. This only applies to MP2T.
+        '''
+
         return self.value == 33
 
     def isDynamic(self) -> bool:
+        '''
+        Is instance encoding name ``dynamic``.
+        '''
+
         return self.value >= 96
 
     def isUnassigned(self) -> bool:
+        '''
+        Is instance encoding name ``unassigned``.
+        '''
+
         return self.value in self._unassignedList()
 
     def isReserved(self) -> bool:
+        '''
+        Is instance encoding name ``reserved``.
+        '''
+
         return self.value in self._reservedList()
 
 
 class CSRCList(UserList):
+    '''
+    A list of Contributing Source Identifiers (CSRCs). CSRCs are stored as
+    integers. The list size and CSRC values are validated in accordance with
+    RFC 3550. The list size is ``0-15``. CSRC values are ``0 <= x < 2**32``.
+    '''
+
     def __init__(self, inList=[]):
         if len(inList) > 15:
             raise LengthError("CSRC list length too long. Max length is 15.")
@@ -190,7 +223,7 @@ class CSRCList(UserList):
         self.data = []
 
         for x in inList:
-            self.csrcIsValid(x)
+            self._csrcIsValid(x)
             self.data.append(x)
 
     def __add__(self, value: Iterable[int]) -> 'CSRCList':
@@ -204,6 +237,10 @@ class CSRCList(UserList):
         return self
 
     def extend(self, value: Iterable[int]) -> None:
+        '''
+        Extend the list by appending all the CSRCs from the iterable.
+        '''
+
         if len(self.data) + len(list(value)) > 15:
             raise LengthError(
                 "Extending would make CSRC list length too long. "
@@ -213,24 +250,35 @@ class CSRCList(UserList):
             self.append(x)
 
     def append(self, value: int) -> None:
+        '''
+        Add a CSRC to the end of the list.
+        '''
+
         if len(self.data) == 15:
             raise LengthError(
                 "Appending would make CSRC list length too long. "
                 "Max length is 15.")
 
-        self.csrcIsValid(value)
+        self._csrcIsValid(value)
 
         self.data.append(value)
 
     def insert(self, i: int, x: int) -> None:
+        '''
+        Insert a CSRC at a given position. The first argument is the index of
+        the element before which to insert, so ``a.insert(0, x)`` inserts at
+        the front of the list, and ``a.insert(len(a), x)`` is equivalent to
+        ``a.append(x)``.
+        '''
+
         if (i < 0) or (i > len(self.data)) or (i >= 15):
             raise IndexError(
                 "CSRC list index must be in range 0-15 and cannot leave gaps")
-        self.csrcIsValid(x)
+        self._csrcIsValid(x)
 
         self.data.insert(i, x)
 
-    def csrcIsValid(self, value: int) -> None:
+    def _csrcIsValid(self, value: int) -> None:
         if type(value) != int:
             raise AttributeError(
                 "CSRC values must be unsigned 32-bit integers")
@@ -239,6 +287,16 @@ class CSRCList(UserList):
 
 
 class Extension:
+    '''
+    A data structure for storing RTP header extensions as defined by RFC 3550.
+
+    Attributes:
+        startBits (bytearray): The initial 16bits of the header extension. Must
+            be 2 bytes long.
+        headerExtension (bytearray): The main header extension bits. Must be a
+            multiple of 4 bytes long.
+    '''
+
     def __init__(self):
         self.startBits = bytearray(2)
         self.headerExtension = bytearray()
@@ -280,6 +338,10 @@ class Extension:
             self._headerExtension = s
 
     def fromBytearray(self, inBytes: bytearray) -> 'Extension':
+        '''
+        Populate instance from a bytearray.
+        '''
+
         length = int.from_bytes(inBytes[2:4], byteorder='big')
         if ((len(inBytes)/4) - 1) != int(length):
             raise LengthError(
@@ -291,6 +353,10 @@ class Extension:
         return self
 
     def toBytearray(self) -> bytearray:
+        '''
+        Encode instance as a bytearray.
+        '''
+
         heLen = len(self.headerExtension)
 
         # Align to 32bits (4 bytes)
@@ -312,6 +378,27 @@ class Extension:
 
 
 class RTP:
+    '''
+    A data structure for storing RTP packets as defined by RFC 3550.
+
+    Attributes:
+        version (int): The RTP version. MUST be set to ``2``.
+        padding (bool): If set to true, the packet contains extra padding.
+        marker (bool): The interpretation of the marker bit is defined by the
+            payload profile.
+        payloadType (PayloadType): Identifies the format of the payload.
+        sequenceNumber (int): The sequence number of the packet. Must be in the
+            range ``0 <= x < 2**16``
+        timestamp (int): The timestamp of the packet. Must be in the range
+            ``0 <= x < 2**32``
+        ssrc (int): The Synchronization Source Identifier. Must be in the range
+            ``0 <= x < 2**32``
+        extension (:obj:`Extension`): A header extension. May be ``None``.
+        csrcList (:obj:`CSRCList`): The CSRC list.
+        payload (bytearray): The RTP payload.
+
+    '''
+
     def __init__(self):
         self.version = 2
         self.padding = False
@@ -450,6 +537,10 @@ class RTP:
             self._payload = p
 
     def fromBytearray(self, packet: bytearray) -> 'RTP':
+        '''
+        Populate instance from a bytearray.
+        '''
+
         self.version = (packet[0] >> 6) & 3
         self.padding = ((packet[0] >> 5) & 1) == 1
         hasExtension = ((packet[0] >> 4) & 1) == 1
@@ -485,6 +576,10 @@ class RTP:
         return self
 
     def toBytearray(self) -> bytearray:
+        '''
+        Encode instance as a bytearray.
+        '''
+
         packetLen = 12
         packetLen += 4 * len(self.csrcList)
 
