@@ -29,16 +29,16 @@ class RTP:
 
     def __init__(
        self,
-       version: int=2,
-       padding: bool=False,
-       marker: bool=False,
-       payloadType: PayloadType=PayloadType.DYNAMIC_96,
-       sequenceNumber: int=None,
-       timestamp: int=0,
-       ssrc: int=None,
-       extension: Union[Extension, None]=None,
-       csrcList: Iterable[int]=None,
-       payload: bytearray=None):
+       version: int = 2,
+       padding: bool = False,
+       marker: bool = False,
+       payloadType: PayloadType = PayloadType.DYNAMIC_96,
+       sequenceNumber: int = None,
+       timestamp: int = 0,
+       ssrc: int = None,
+       extension: Union[Extension, None] = None,
+       csrcList: Iterable[int] = None,
+       payload: bytearray = None):
         self.version = version
         self.padding = padding
         self.marker = marker

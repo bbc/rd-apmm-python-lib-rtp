@@ -14,8 +14,8 @@ class Extension:
 
     def __init__(
        self,
-       startBits: bytearray=None,
-       headerExtension: bytearray=None):
+       startBits: bytearray = None,
+       headerExtension: bytearray = None):
 
         self.startBits = bytearray(2)
         self.headerExtension = bytearray()
