@@ -7,7 +7,7 @@
 # not have permission to reproduce it.
 
 from unittest import TestCase
-from rtp.rtp import PayloadType
+from rtp import PayloadType
 
 
 class TestPayloadType (TestCase):

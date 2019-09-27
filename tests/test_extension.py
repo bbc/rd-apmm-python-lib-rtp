@@ -9,7 +9,7 @@
 from unittest import TestCase
 from hypothesis import given, assume, strategies as st
 
-from rtp.rtp import Extension, LengthError
+from rtp import Extension, LengthError
 
 
 class TestExtension (TestCase):

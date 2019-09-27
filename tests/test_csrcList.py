@@ -9,7 +9,7 @@
 from unittest import TestCase
 from hypothesis import given, strategies as st
 
-from rtp.rtp import CSRCList, LengthError
+from rtp import LengthError, CSRCList
 
 
 class TestCSRCList (TestCase):

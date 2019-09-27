@@ -9,7 +9,7 @@
 from unittest import TestCase
 from hypothesis import given, example, strategies as st
 
-from rtp.rtp import RTP, PayloadType, Extension, CSRCList
+from rtp import RTP, PayloadType, Extension, CSRCList
 
 
 class TestRTP (TestCase):
