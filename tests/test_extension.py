@@ -16,6 +16,15 @@ class TestExtension (TestCase):
     def setUp(self):
         self.thisExt = Extension()
 
+    @given(st.binary(min_size=2, max_size=2),
+           st.binary(max_size=((2**16)-1)*4
+                     ).filter(lambda x: (len(x) % 4) == 0))
+    def test_init(self, startBits, headerExtension):
+        newExt = Extension(bytearray(startBits), bytearray(headerExtension))
+
+        self.assertEqual(newExt.startBits, startBits)
+        self.assertEqual(newExt.headerExtension, headerExtension)
+
     def test_startBits_default(self):
         self.assertEqual(self.thisExt.startBits, bytearray(2))
 

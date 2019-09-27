@@ -1,4 +1,5 @@
-from typing import Union
+from typing import Union, Iterable
+from random import randint
 from .payloadType import PayloadType
 from .csrcList import CSRCList
 from .extension import Extension
@@ -26,17 +27,43 @@ class RTP:
 
     '''
 
-    def __init__(self):
-        self.version = 2
-        self.padding = False
-        self.marker = False
-        self.payloadType = PayloadType.DYNAMIC_96
-        self.sequenceNumber = 0
-        self.timestamp = 0
-        self.ssrc = 0
-        self.extension = None
+    def __init__(
+       self,
+       version: int=2,
+       padding: bool=False,
+       marker: bool=False,
+       payloadType: PayloadType=PayloadType.DYNAMIC_96,
+       sequenceNumber: int=None,
+       timestamp: int=0,
+       ssrc: int=None,
+       extension: Union[Extension, None]=None,
+       csrcList: Iterable[int]=None,
+       payload: bytearray=None):
+        self.version = version
+        self.padding = padding
+        self.marker = marker
+        self.payloadType = payloadType
+        self.timestamp = timestamp
+        self.ssrc = timestamp
+        self.extension = extension
         self._csrcList = CSRCList()
         self.payload = bytearray()
+
+        if sequenceNumber is None:
+            self.sequenceNumber = randint(0, (2**16)-1)
+        else:
+            self.sequenceNumber = sequenceNumber
+
+        if ssrc is None:
+            self.ssrc = randint(0, (2**32)-1)
+        else:
+            self.ssrc = ssrc
+
+        if csrcList is not None:
+            self.csrcList.extend(csrcList)
+
+        if payload is not None:
+            self.payload = payload
 
     def __eq__(self, other) -> bool:
         return (

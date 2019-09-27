@@ -12,9 +12,19 @@ class Extension:
             multiple of 4 bytes long.
     '''
 
-    def __init__(self):
+    def __init__(
+       self,
+       startBits: bytearray=None,
+       headerExtension: bytearray=None):
+
         self.startBits = bytearray(2)
         self.headerExtension = bytearray()
+
+        if startBits is not None:
+            self.startBits = startBits
+
+        if headerExtension is not None:
+            self.headerExtension = headerExtension
 
     def __eq__(self, other) -> bool:
         return (

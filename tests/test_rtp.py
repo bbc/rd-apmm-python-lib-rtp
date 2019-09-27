@@ -19,6 +19,49 @@ class TestRTP (TestCase):
     def setup_example(self):
         self.setUp()
 
+    @given(
+        st.booleans(),
+        st.booleans(),
+        st.sampled_from(PayloadType),
+        st.integers(min_value=0, max_value=(2**16)-1),
+        st.integers(min_value=0, max_value=(2**32)-1),
+        st.integers(min_value=0, max_value=(2**32)-1),
+        st.lists(st.integers(min_value=0, max_value=(2**16)-1), max_size=15),
+        st.binary())
+    def test_init(
+       self,
+       padding,
+       marker,
+       payloadType,
+       sequenceNumber,
+       timestamp,
+       ssrc,
+       csrcList,
+       payload):
+        newExt = Extension()
+        newRTP = RTP(
+            version=2,
+            padding=padding,
+            marker=marker,
+            payloadType=payloadType,
+            sequenceNumber=sequenceNumber,
+            timestamp=timestamp,
+            ssrc=ssrc,
+            extension=newExt,
+            csrcList=csrcList,
+            payload=bytearray(payload))
+
+        self.assertEqual(newRTP.version, 2)
+        self.assertEqual(newRTP.padding, padding)
+        self.assertEqual(newRTP.marker, marker)
+        self.assertEqual(newRTP.payloadType, payloadType)
+        self.assertEqual(newRTP.sequenceNumber, sequenceNumber)
+        self.assertEqual(newRTP.timestamp, timestamp)
+        self.assertEqual(newRTP.ssrc, ssrc)
+        self.assertEqual(newRTP.extension, newExt)
+        self.assertEqual(newRTP.csrcList, csrcList)
+        self.assertEqual(newRTP.payload, payload)
+
     def test_version_default(self):
         # Test default
         self.assertEqual(self.thisRTP.version, 2)
@@ -70,7 +113,7 @@ class TestRTP (TestCase):
             self.thisRTP.payloadType = ""
 
     def test_sequenceNumber_default(self):
-        self.assertEqual(self.thisRTP.sequenceNumber, 0)
+        self.assertIsInstance(self.thisRTP.sequenceNumber, int)
 
     @given(st.integers(min_value=0, max_value=(2**16)-1))
     def test_sequenceNumber_valid(self, value):
@@ -104,7 +147,7 @@ class TestRTP (TestCase):
             self.thisRTP.timestamp = ""
 
     def test_ssrc_default(self):
-        self.assertEqual(self.thisRTP.ssrc, 0)
+        self.assertIsInstance(self.thisRTP.ssrc, int)
 
     @given(st.integers(min_value=0, max_value=(2**32)-1))
     def test_ssrc_valid(self, value):
@@ -151,6 +194,8 @@ class TestRTP (TestCase):
             self.thisRTP.payload = ""
 
     def test_fromBytearray_default(self):
+        self.thisRTP.sequenceNumber = 0
+        self.thisRTP.ssrc = 0
         default = bytearray(
             b'\x80\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
 
@@ -158,11 +203,15 @@ class TestRTP (TestCase):
         self.assertEqual(newRTP, self.thisRTP)
 
     def test_toBytearray_default(self):
+        self.thisRTP.sequenceNumber = 0
+        self.thisRTP.ssrc = 0
         expected = b'\x80\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
         self.assertEqual(self.thisRTP.toBytearray(), expected)
 
     @given(st.booleans())
     def test_fromBytearray_padding(self, value):
+        self.thisRTP.sequenceNumber = 0
+        self.thisRTP.ssrc = 0
         payload = bytearray(
             b'\x80\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
         payload[0] |= value << 5
@@ -173,6 +222,8 @@ class TestRTP (TestCase):
 
     @given(st.booleans())
     def test_toBytearray_padding(self, value):
+        self.thisRTP.sequenceNumber = 0
+        self.thisRTP.ssrc = 0
         expected = bytearray(
             b'\x80\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
         expected[0] |= value << 5
@@ -183,6 +234,8 @@ class TestRTP (TestCase):
            st.binary(max_size=((2**16)-1)*4
                      ).filter(lambda x: (len(x) % 4) == 0))
     def test_fromBytearray_extension(self, startBits, headerExtension):
+        self.thisRTP.sequenceNumber = 0
+        self.thisRTP.ssrc = 0
         newExt = Extension()
         newExt.startBits = bytearray(startBits)
         newExt.headerExtension = bytearray(headerExtension)
@@ -200,6 +253,8 @@ class TestRTP (TestCase):
            st.binary(max_size=((2**16)-1)*4
                      ).filter(lambda x: (len(x) % 4) == 0))
     def test_toBytearray_extension(self, startBits, headerExtension):
+        self.thisRTP.sequenceNumber = 0
+        self.thisRTP.ssrc = 0
         newExt = Extension()
         newExt.startBits = bytearray(startBits)
         newExt.headerExtension = bytearray(headerExtension)
@@ -214,6 +269,8 @@ class TestRTP (TestCase):
     @given(st.lists(st.integers(
         min_value=0, max_value=(2**16)-1), max_size=15))
     def test_fromBytearray_csrcList(self, value):
+        self.thisRTP.sequenceNumber = 0
+        self.thisRTP.ssrc = 0
         payload = bytearray(
             b'\x80\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
         payload[0] |= len(value)
@@ -227,6 +284,8 @@ class TestRTP (TestCase):
     @given(st.lists(st.integers(
         min_value=0, max_value=(2**16)-1), max_size=15))
     def test_toBytearray_csrcList(self, value):
+        self.thisRTP.sequenceNumber = 0
+        self.thisRTP.ssrc = 0
         expected = bytearray(
             b'\x80\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
         expected[0] |= len(value)
@@ -238,6 +297,8 @@ class TestRTP (TestCase):
 
     @given(st.booleans())
     def test_fromBytearray_marker(self, value):
+        self.thisRTP.sequenceNumber = 0
+        self.thisRTP.ssrc = 0
         payload = bytearray(
             b'\x80\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
         payload[1] |= value << 7
@@ -248,6 +309,8 @@ class TestRTP (TestCase):
 
     @given(st.booleans())
     def test_toBytearray_marker(self, value):
+        self.thisRTP.sequenceNumber = 0
+        self.thisRTP.ssrc = 0
         expected = bytearray(
             b'\x80\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
         expected[1] |= value << 7
@@ -257,6 +320,8 @@ class TestRTP (TestCase):
 
     @given(st.sampled_from(PayloadType))
     def test_fromBytearray_payloadType(self, value):
+        self.thisRTP.sequenceNumber = 0
+        self.thisRTP.ssrc = 0
         payload = bytearray(
             b'\x80\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
         payload[1] = value.value
@@ -267,6 +332,8 @@ class TestRTP (TestCase):
 
     @given(st.sampled_from(PayloadType))
     def test_toBytearray_payloadType(self, value):
+        self.thisRTP.sequenceNumber = 0
+        self.thisRTP.ssrc = 0
         expected = bytearray(
             b'\x80\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
         expected[1] = value.value
@@ -276,6 +343,8 @@ class TestRTP (TestCase):
 
     @given(st.integers(min_value=0, max_value=(2**16)-1))
     def test_fromBytearray_sequenceNumber(self, value):
+        self.thisRTP.sequenceNumber = 0
+        self.thisRTP.ssrc = 0
         payload = bytearray(
             b'\x80\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
         payload[2:4] = value.to_bytes(2, byteorder='big')
@@ -286,6 +355,8 @@ class TestRTP (TestCase):
 
     @given(st.integers(min_value=0, max_value=(2**16)-1))
     def test_toBytearray_sequenceNumber(self, value):
+        self.thisRTP.sequenceNumber = 0
+        self.thisRTP.ssrc = 0
         expected = bytearray(
             b'\x80\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
         expected[2:4] = value.to_bytes(2, byteorder='big')
@@ -294,6 +365,8 @@ class TestRTP (TestCase):
 
     @given(st.integers(min_value=0, max_value=(2**32)-1))
     def test_fromBytearray_timestamp(self, value):
+        self.thisRTP.sequenceNumber = 0
+        self.thisRTP.ssrc = 0
         payload = bytearray(
             b'\x80\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
         payload[4:8] = value.to_bytes(4, byteorder='big')
@@ -304,6 +377,8 @@ class TestRTP (TestCase):
 
     @given(st.integers(min_value=0, max_value=(2**32)-1))
     def test_toBytearray_timestamp(self, value):
+        self.thisRTP.sequenceNumber = 0
+        self.thisRTP.ssrc = 0
         expected = bytearray(
             b'\x80\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
         expected[4:8] = value.to_bytes(4, byteorder='big')
@@ -312,6 +387,8 @@ class TestRTP (TestCase):
 
     @given(st.integers(min_value=0, max_value=(2**32)-1))
     def test_fromBytearray_ssrc(self, value):
+        self.thisRTP.sequenceNumber = 0
+        self.thisRTP.ssrc = 0
         payload = bytearray(
             b'\x80\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
         payload[8:12] = value.to_bytes(4, byteorder='big')
@@ -322,6 +399,8 @@ class TestRTP (TestCase):
 
     @given(st.integers(min_value=0, max_value=(2**32)-1))
     def test_toBytearray_ssrc(self, value):
+        self.thisRTP.sequenceNumber = 0
+        self.thisRTP.ssrc = 0
         expected = bytearray(
             b'\x80\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
         expected[8:12] = value.to_bytes(4, byteorder='big')
@@ -330,6 +409,8 @@ class TestRTP (TestCase):
 
     @given(st.binary())
     def test_fromBytearray_payload(self, value):
+        self.thisRTP.sequenceNumber = 0
+        self.thisRTP.ssrc = 0
         payload = bytearray(
             b'\x80\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
         payload += value
@@ -340,6 +421,8 @@ class TestRTP (TestCase):
 
     @given(st.binary())
     def test_toBytearray_payload(self, value):
+        self.thisRTP.sequenceNumber = 0
+        self.thisRTP.ssrc = 0
         expected = bytearray(
             b'\x80\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
         expected += value
