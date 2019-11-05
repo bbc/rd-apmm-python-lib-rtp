@@ -428,3 +428,23 @@ class TestRTP (TestCase):
         expected += value
         self.thisRTP.payload = bytearray(value)
         self.assertEqual(self.thisRTP.toBytearray(), expected)
+
+    def test_fromBytes_default(self):
+        self.thisRTP.sequenceNumber = 0
+        self.thisRTP.ssrc = 0
+        default = b'\x80\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+
+        newRTP = RTP().fromBytes(default)
+        self.assertEqual(newRTP, self.thisRTP)
+
+    def test_toBytes_default(self):
+        self.thisRTP.sequenceNumber = 0
+        self.thisRTP.ssrc = 0
+        expected = b'\x80\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+        self.assertEqual(self.thisRTP.toBytes(), expected)
+
+    def test_bytes_default(self):
+        self.thisRTP.sequenceNumber = 0
+        self.thisRTP.ssrc = 0
+        expected = b'\x80\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+        self.assertEqual(bytes(self.thisRTP), expected)

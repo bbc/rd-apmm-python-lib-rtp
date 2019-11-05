@@ -275,3 +275,18 @@ class RTP:
         packet[payloadStartIndex:] = self.payload
 
         return packet
+
+    def fromBytes(self, packet: bytes) -> 'RTP':
+        '''
+        Populate instance from bytes.
+        '''
+        return self.fromBytearray(bytearray(packet))
+
+    def toBytes(self) -> bytes:
+        '''
+        Encode instance as bytes.
+        '''
+        return bytes(self.toBytearray())
+
+    def __bytes__(self) -> bytes:
+        return self.toBytes()
