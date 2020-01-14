@@ -1,4 +1,5 @@
-from typing import Union, Iterable
+from __future__ import annotations
+from typing import Iterable, Optional
 from random import randint
 from .payloadType import PayloadType
 from .csrcList import CSRCList
@@ -36,9 +37,9 @@ class RTP:
        sequenceNumber: int = None,
        timestamp: int = 0,
        ssrc: int = None,
-       extension: Union[Extension, None] = None,
+       extension: Optional[Extension] = None,
        csrcList: Iterable[int] = None,
-       payload: bytearray = None):
+       payload: bytearray = None) -> None:
         self.version = version
         self.padding = padding
         self.marker = marker
@@ -65,7 +66,9 @@ class RTP:
         if payload is not None:
             self.payload = payload
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, RTP):
+            return NotImplemented
         return (
             (type(self) == type(other)) and
             (self.version == other.version) and
@@ -103,11 +106,11 @@ class RTP:
             raise AttributeError("Padding value must be boolean")
 
     @property
-    def extension(self) -> Union[Extension, None]:
+    def extension(self) -> Optional[Extension]:
         return self._extension
 
     @extension.setter
-    def extension(self, e: Union[Extension, None]) -> None:
+    def extension(self, e: Optional[Extension]) -> None:
         if (type(e) == Extension) or (e is None):
             self._extension = e
         else:
@@ -190,7 +193,7 @@ class RTP:
         else:
             self._payload = p
 
-    def fromBytearray(self, packet: bytearray) -> 'RTP':
+    def fromBytearray(self, packet: bytearray) -> RTP:
         '''
         Populate instance from a bytearray.
         '''
@@ -276,7 +279,7 @@ class RTP:
 
         return packet
 
-    def fromBytes(self, packet: bytes) -> 'RTP':
+    def fromBytes(self, packet: bytes) -> RTP:
         '''
         Populate instance from bytes.
         '''

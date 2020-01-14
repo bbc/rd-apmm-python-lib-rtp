@@ -1,3 +1,4 @@
+from __future__ import annotations
 from .errors import LengthError
 
 
@@ -15,7 +16,7 @@ class Extension:
     def __init__(
        self,
        startBits: bytearray = None,
-       headerExtension: bytearray = None):
+       headerExtension: bytearray = None) -> None:
 
         self.startBits = bytearray(2)
         self.headerExtension = bytearray()
@@ -26,7 +27,9 @@ class Extension:
         if headerExtension is not None:
             self.headerExtension = headerExtension
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Extension):
+            return NotImplemented
         return (
             (type(self) == type(other)) and
             (self.startBits == other.startBits) and
@@ -62,7 +65,7 @@ class Extension:
         else:
             self._headerExtension = s
 
-    def fromBytearray(self, inBytes: bytearray) -> 'Extension':
+    def fromBytearray(self, inBytes: bytearray) -> Extension:
         '''
         Populate instance from a bytearray.
         '''

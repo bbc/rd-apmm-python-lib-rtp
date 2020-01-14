@@ -1,5 +1,6 @@
+from __future__ import annotations
 from collections import UserList
-from typing import Iterable
+from typing import Iterable, List, Union
 from .errors import LengthError
 
 
@@ -10,22 +11,22 @@ class CSRCList(UserList):
     RFC 3550. The list size is ``0-15``. CSRC values are ``0 <= x < 2**32``.
     '''
 
-    def __init__(self, inList=[]):
+    def __init__(self, inList: Union[List[int], CSRCList] = []) -> None:
         if len(inList) > 15:
             raise LengthError("CSRC list length too long. Max length is 15.")
 
-        self.data = []
+        self.data: List[int] = []
 
         for x in inList:
             self._csrcIsValid(x)
             self.data.append(x)
 
-    def __add__(self, value: Iterable[int]) -> 'CSRCList':
+    def __add__(self, value: Iterable[int]) -> CSRCList:
         newList = CSRCList(self)
         newList += value
         return newList
 
-    def __iadd__(self, value: Iterable[int]) -> 'CSRCList':
+    def __iadd__(self, value: Iterable[int]) -> CSRCList:
         self.extend(value)
 
         return self

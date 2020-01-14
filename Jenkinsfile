@@ -31,6 +31,7 @@ pipeline {
         http_proxy = "${ANSIBLE_PROXY}"
         https_proxy = "${ANSIBLE_PROXY}"
         FORGE_CERT = "/etc/pki/tls/private/client_crt_key.pem"
+        PATH = "$HOME/.pyenv/bin:$PATH"
     }
     stages {
         stage ("Prepare Environment") {
@@ -39,6 +40,17 @@ pipeline {
                     steps {
                         sh 'git clean -df'
                         sh 'rm -rf /tmp/$(basename ${WORKSPACE})/'
+                    }
+                }
+                stage ("Update pyenv") {
+                    steps {
+                        sh "cd $HOME/.pyenv; git pull"
+                    }
+                }
+                stage ("Configure pyenv") {
+                    steps {
+                        sh "pyenv install -s 3.7.5"
+                        sh "pyenv local 3.7.5"
                     }
                 }
             }
@@ -134,7 +146,7 @@ pipeline {
                             env.py3wheel_result = "FAILURE"
                         }
                         bbcGithubNotify(context: "wheelBuild/py3", status: "PENDING")
-                        bbcMakeWheel("py3")
+                        bbcMakeWheel("py3.7")
                         script {
                             env.py3wheel_result = "SUCCESS" // This will only run if the steps above succeeded
                         }
@@ -199,7 +211,7 @@ pipeline {
                             env.artifactoryUpload_result = "FAILURE"
                         }
                         bbcGithubNotify(context: "artifactory/upload", status: "PENDING")
-                        bbcTwineUpload(toxenv: "py3")
+                        bbcTwineUpload(toxenv: "py3.7")
                         script {
                             env.artifactoryUpload_result = "SUCCESS" // This will only run if the steps above succeeded
                         }
