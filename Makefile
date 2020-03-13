@@ -1,3 +1,9 @@
+# Copyright 2020 British Broadcasting Corporation
+#
+# This is an internal BBC tool and is not licensed externally
+# If you have received a copy of this erroneously then you do
+# not have permission to reproduce it.
+
 PYTHON=`which python`
 PYTHON2=`which python2`
 PYTHON3=`which python3`
@@ -15,7 +21,7 @@ MODNAME=$(PROJECT)
 
 # The rules for names and versions in python, rpm, and deb are different
 # and not entirely compatible. As such py2dsc will automatically convert
-# your package name into a suitable deb name and version number, and this 
+# your package name into a suitable deb name and version number, and this
 # code replicates that.
 DEBNAME=$(shell echo $(MODNAME) | tr '[:upper:]_' '[:lower:]-')
 DEBVERSION=$(shell echo $(VERSION) | sed 's/\.dev/~dev/')
