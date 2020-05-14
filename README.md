@@ -4,7 +4,7 @@ This python library provides a means to decode, encode, and interact with RTP pa
 
 ## Example usage
 ```python
-from rtp import *
+from rtp import RTP, Extension, PayloadType
 from copy import deepcopy
 
 baseRTP = RTP(
@@ -28,7 +28,8 @@ while runing:
 ```
 
 ```python
-from rtp import *
+from rtp import RTP
+
 decodedPayload = MyPayloadDecoder(
     RTP().fromBytearray(getNextPacket()).payload)
 
