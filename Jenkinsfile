@@ -56,6 +56,7 @@ pipeline {
                     steps {
                         sh 'git clean -df'
                         sh 'rm -rf /tmp/$(basename ${WORKSPACE})/'
+                        sh 'make clean'
                     }
                 }
                 stage ("Update pyenv") {
