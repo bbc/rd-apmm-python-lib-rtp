@@ -15,7 +15,7 @@
 # limitations under the License.
 
 from unittest import TestCase
-from hypothesis import given, example, strategies as st
+from hypothesis import given, example, strategies as st  # type: ignore
 
 from rtp import RTP, PayloadType, Extension, CSRCList
 
