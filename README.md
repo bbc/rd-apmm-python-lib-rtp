@@ -2,6 +2,12 @@
 
 This python library provides a means to decode, encode, and interact with RTP packets. It is intended to be used together with other libraries that decode, encode, and interact with the payload bitstreams. This library does not provide any network functionality.
 
+## Installation
+
+```bash
+pip install rtp
+```
+
 ## Example usage
 ```python
 from rtp import RTP, Extension, PayloadType

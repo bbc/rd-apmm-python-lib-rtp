@@ -212,7 +212,32 @@ pipeline {
                     }
                 }
             }
-            parallel {
+            stages {
+                stage ("Upload to PyPi") {
+                    when {
+                        anyOf {
+                            expression { return params.FORCE_PYUPLOAD }
+                            expression {
+                                bbcShouldUploadArtifacts(branches: ["master"])
+                            }
+                        }
+                    }
+                    steps {
+                        script {
+                            env.pypiUpload_result = "FAILURE"
+                        }
+                        bbcGithubNotify(context: "pypi/upload", status: "PENDING")
+                        bbcTwineUpload(toxenv: "py3.7", pypi: true)
+                        script {
+                            env.pypiUpload_result = "SUCCESS" // This will only run if the steps above succeeded
+                        }
+                    }
+                    post {
+                        always {
+                            bbcGithubNotify(context: "pypi/upload", status: env.pypiUpload_result)
+                        }
+                    }
+                }
                 stage ("Upload to Artifactory") {
                     when {
                         anyOf {
