@@ -29,7 +29,10 @@ url = 'https://github.com/bbc/rd-apmm-python-lib-rtp'
 author = u'James Sandford'
 author_email = u'james.sandford@bbc.co.uk'
 license = 'apache-2.0'
-long_description = description
+
+this_directory = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(this_directory, 'README.md')) as f:
+    long_description = f.read()
 
 
 def is_package(path):
