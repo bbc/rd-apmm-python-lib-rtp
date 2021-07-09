@@ -23,13 +23,16 @@ import os
 
 # Basic metadata
 name = 'rtp'
-version = '0.0.0'
+version = '0.0.1'
 description = 'A library for decoding/encoding rtp packets'
 url = 'https://github.com/bbc/rd-apmm-python-lib-rtp'
 author = u'James Sandford'
 author_email = u'james.sandford@bbc.co.uk'
 license = 'apache-2.0'
-long_description = description
+
+this_directory = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(this_directory, 'README.md')) as f:
+    long_description = f.read()
 
 
 def is_package(path):
@@ -75,5 +78,5 @@ setup(name=name,
       package_dir=packages,
       install_requires=packages_required,
       scripts=[],
-      data_files=[],
+      package_data={name: ['py.typed'] for name in package_names},
       long_description=long_description)

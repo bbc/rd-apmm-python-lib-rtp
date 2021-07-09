@@ -12,19 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-PYTHON=`which python`
-PYTHON2=`which python2`
 PYTHON3=`which python3`
 PY2DSC=`which py2dsc`
 
-PY2DSC_PARAMS?=--with-python2=true --with-python3=true
+PY2DSC_PARAMS?=--with-python3=true
 
 topdir := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 topbuilddir := $(realpath .)
 
 DESTDIR=/
-PROJECT=$(shell python $(topdir)/setup.py --name)
-VERSION=$(shell python $(topdir)/setup.py --version)
+PROJECT=$(shell python3 $(topdir)/setup.py --name)
+VERSION=$(shell python3 $(topdir)/setup.py --version)
 MODNAME=$(PROJECT)
 
 # The rules for names and versions in python, rpm, and deb are different
@@ -63,15 +61,15 @@ $(topbuilddir)/dist:
 	mkdir -p $@
 
 source: $(topbuilddir)/dist
-	$(PYTHON) $(topdir)/setup.py sdist $(COMPILE) --dist-dir=$(topbuilddir)/dist
+	$(PYTHON3) $(topdir)/setup.py sdist $(COMPILE) --dist-dir=$(topbuilddir)/dist
 
 $(topbuilddir)/dist/$(MODNAME)-$(VERSION).tar.gz: source
 
 install:
-	$(PYTHON) $(topdir)/setup.py install --root $(DESTDIR) $(COMPILE)
+	$(PYTHON3) $(topdir)/setup.py install --root $(DESTDIR) $(COMPILE)
 
 clean:
-	$(PYTHON) $(topdir)/setup.py clean || true
+	$(PYTHON3) $(topdir)/setup.py clean || true
 	rm -rf $(topbuilddir)/.tox
 	rm -rf $(topbuilddir)/build/ MANIFEST
 	rm -rf $(topbuilddir)/dist
@@ -81,13 +79,10 @@ clean:
 	find $(topdir) -name '*.py,cover' -delete
 	rm -rf $(topbuilddir)/docs
 
-testenv: $(TOXDIR)/py27/bin/activate $(TOXDIR)/py3/bin/activate
+testenv: $(TOXDIR)/py3/bin/activate
 
 $(TOXDIR)/py3/bin/activate: tox.ini
 	tox -e py3 --recreate --workdir $(TOXDIR)
-
-$(TOXDIR)/py27/bin/activate: tox.ini
-	tox -e py27 --recreate --workdir $(TOXDIR)
 
 test:
 	tox --workdir $(TOXDIR)
@@ -131,11 +126,9 @@ rpm: $(RPM_PREFIX)/SPECS/$(MODNAME).spec $(RPM_PREFIX)/SOURCES/$(MODNAME)-$(VERS
 	cp $(RPM_PREFIX)/RPMS/*/*.rpm $(topbuilddir)/dist
 
 wheel:
-	$(PYTHON2) $(topdir)/setup.py bdist_wheel
 	$(PYTHON3) $(topdir)/setup.py bdist_wheel
 
 egg:
-	$(PYTHON2) $(topdir)/setup.py bdist_egg
 	$(PYTHON3) $(topdir)/setup.py bdist_egg
 
 docs: $(topbuilddir)/docs/$(MODNAME).html
