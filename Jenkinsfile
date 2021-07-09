@@ -163,7 +163,7 @@ pipeline {
                             env.py3wheel_result = "FAILURE"
                         }
                         bbcGithubNotify(context: "wheelBuild/py3", status: "PENDING")
-                        bbcMakeWheel("py3.7")
+                        bbcMakeGlobalWheel("py3.7")
                         script {
                             env.py3wheel_result = "SUCCESS" // This will only run if the steps above succeeded
                         }
