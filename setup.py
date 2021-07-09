@@ -79,4 +79,5 @@ setup(name=name,
       install_requires=packages_required,
       scripts=[],
       package_data={name: ['py.typed'] for name in package_names},
-      long_description=long_description)
+      long_description=long_description,
+      long_description_content_type="text/markdown")
