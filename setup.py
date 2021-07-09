@@ -75,5 +75,5 @@ setup(name=name,
       package_dir=packages,
       install_requires=packages_required,
       scripts=[],
-      data_files=[],
+      package_data={name: ['py.typed'] for name in package_names},
       long_description=long_description)
