@@ -23,7 +23,7 @@ import os
 
 # Basic metadata
 name = 'rtp'
-version = '0.0.1'
+version = '0.0.2'
 description = 'A library for decoding/encoding rtp packets'
 url = 'https://github.com/bbc/rd-apmm-python-lib-rtp'
 author = u'BBC R&D'
