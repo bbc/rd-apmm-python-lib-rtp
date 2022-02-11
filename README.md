@@ -49,5 +49,11 @@ The purpose of this agreement is to clearly define the terms under which intelle
 
 If you haven't signed and emailed the agreement yet then the project owners will contact you using the contact info with the pull request.
 
-## License 
+## License
 See [LICENSE](LICENSE).
+
+## Authors
+
+* James Sandford
+
+For further information, contact <cloudfit-opensource@rd.bbc.co.uk>
