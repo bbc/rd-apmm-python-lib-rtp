@@ -60,13 +60,6 @@ def find_packages(path, base=""):
 packages = find_packages(".")
 package_names = packages.keys()
 
-# This is where you list packages which are required
-packages_required = [
-    "six",
-    "flask",
-    "mypy"
-]
-
 setup(name=name,
       version=version,
       description=description,
@@ -76,7 +69,6 @@ setup(name=name,
       license=license,
       packages=package_names,
       package_dir=packages,
-      install_requires=packages_required,
       scripts=[],
       package_data={name: ['py.typed'] for name in package_names},
       long_description=long_description,
