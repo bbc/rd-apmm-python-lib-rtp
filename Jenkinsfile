@@ -72,61 +72,57 @@ pipeline {
                 }
             }
         }
-        stage ("Tests") {
-            parallel {
-                stage ("Linting Check") {
-                    steps {
-                        script {
-                            env.lint_result = "FAILURE"
-                        }
-                        bbcGithubNotify(context: "tests/lint", status: "PENDING")
-                        // Use a workdirectory in /tmp to avoid shebang length limitation
-                        sh 'tox -e lint --recreate --workdir /tmp/$(basename ${WORKSPACE})/tox-lint'
-                        script {
-                            env.lint_result = "SUCCESS" // This will only run if the sh above succeeded
-                        }
-                    }
-                    post {
-                        always {
-                            bbcGithubNotify(context: "tests/lint", status: env.lint_result)
-                        }
-                    }
+        stage ("Linting Check") {
+            steps {
+                script {
+                    env.lint_result = "FAILURE"
                 }
-                stage ("Type Check") {
-                    steps {
-                        script {
-                            env.type_result = "FAILURE"
-                        }
-                        bbcGithubNotify(context: "tests/type", status: "PENDING")
-                        // Use a workdirectory in /tmp to avoid shebang length limitation
-                        sh 'tox -e typecheck --recreate --workdir /tmp/$(basename ${WORKSPACE})/tox-type'
-                        script {
-                            env.type_result = "SUCCESS" // This will only run if the sh above succeeded
-                        }
-                    }
-                    post {
-                        always {
-                            bbcGithubNotify(context: "tests/type", status: env.type_result)
-                        }
-                    }
+                bbcGithubNotify(context: "tests/lint", status: "PENDING")
+                // Use a workdirectory in /tmp to avoid shebang length limitation
+                sh 'tox -e lint --recreate --workdir /tmp/$(basename ${WORKSPACE})/tox-lint'
+                script {
+                    env.lint_result = "SUCCESS" // This will only run if the sh above succeeded
                 }
-                stage ("Unit Tests") {
-                    steps {
-                        script {
-                            env.unittest_result = "FAILURE"
-                        }
-                        bbcGithubNotify(context: "tests/unittest", status: "PENDING")
-                        // Use a workdirectory in /tmp to avoid shebang length limitation
-                        sh 'tox -e unittest --recreate --workdir /tmp/$(basename ${WORKSPACE})/tox-unittest'
-                        script {
-                            env.unittest_result = "SUCCESS" // This will only run if the sh above succeeded
-                        }
-                    }
-                    post {
-                        always {
-                            bbcGithubNotify(context: "tests/unittest", status: env.unittest_result)
-                        }
-                    }
+            }
+            post {
+                always {
+                    bbcGithubNotify(context: "tests/lint", status: env.lint_result)
+                }
+            }
+        }
+        stage ("Type Check") {
+            steps {
+                script {
+                    env.type_result = "FAILURE"
+                }
+                bbcGithubNotify(context: "tests/type", status: "PENDING")
+                // Use a workdirectory in /tmp to avoid shebang length limitation
+                sh 'tox -e typecheck --recreate --workdir /tmp/$(basename ${WORKSPACE})/tox-type'
+                script {
+                    env.type_result = "SUCCESS" // This will only run if the sh above succeeded
+                }
+            }
+            post {
+                always {
+                    bbcGithubNotify(context: "tests/type", status: env.type_result)
+                }
+            }
+        }
+        stage ("Unit Tests") {
+            steps {
+                script {
+                    env.unittest_result = "FAILURE"
+                }
+                bbcGithubNotify(context: "tests/unittest", status: "PENDING")
+                // Use a workdirectory in /tmp to avoid shebang length limitation
+                sh 'tox -e unittest --recreate --workdir /tmp/$(basename ${WORKSPACE})/tox-unittest'
+                script {
+                    env.unittest_result = "SUCCESS" // This will only run if the sh above succeeded
+                }
+            }
+            post {
+                always {
+                    bbcGithubNotify(context: "tests/unittest", status: env.unittest_result)
                 }
             }
         }
