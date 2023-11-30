@@ -1,0 +1,28 @@
+name: Python package
+
+on:
+  schedule:
+    - cron: '0 4 * * 1'
+
+  # Pull requests and pushes will not trigger a run if the only changes are on workflows other than this one
+  pull_request:
+    paths-ignore:
+      - '.github/workflows/**'
+      - '!.github/workflows/ci-workflow.yml'
+
+  push:
+    paths-ignore:
+      - '.github/workflows/**'
+      - '!.github/workflows/ci-workflow.yml'
+    branches:
+      - 'main'
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Test
+        run: echo "test"
