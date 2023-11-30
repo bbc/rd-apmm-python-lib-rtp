@@ -47,12 +47,12 @@ class RTP:
        padding: bool = False,
        marker: bool = False,
        payloadType: PayloadType = PayloadType.DYNAMIC_96,
-       sequenceNumber: int = None,
+       sequenceNumber: Optional[int] = None,
        timestamp: int = 0,
-       ssrc: int = None,
+       ssrc: Optional[int] = None,
        extension: Optional[Extension] = None,
-       csrcList: Iterable[int] = None,
-       payload: bytearray = None) -> None:
+       csrcList: Optional[Iterable[int]] = None,
+       payload: Optional[bytearray] = None) -> None:
         self.version = version
         self.padding = padding
         self.marker = marker
@@ -83,7 +83,7 @@ class RTP:
         if not isinstance(other, RTP):
             return NotImplemented
         return (
-            (type(self) == type(other)) and
+            (type(self) is type(other)) and
             (self.version == other.version) and
             (self.padding == other.padding) and
             (self.marker == other.marker) and
@@ -113,7 +113,7 @@ class RTP:
 
     @padding.setter
     def padding(self, p: bool) -> None:
-        if type(p) == bool:
+        if type(p) is bool:
             self._padding = p
         else:
             raise AttributeError("Padding value must be boolean")
@@ -124,7 +124,7 @@ class RTP:
 
     @extension.setter
     def extension(self, e: Optional[Extension]) -> None:
-        if (type(e) == Extension) or (e is None):
+        if (type(e) is Extension) or (e is None):
             self._extension = e
         else:
             raise AttributeError(
@@ -136,7 +136,7 @@ class RTP:
 
     @marker.setter
     def marker(self, m: bool) -> None:
-        if type(m) == bool:
+        if type(m) is bool:
             self._marker = m
         else:
             raise AttributeError("Marker value must be boolean")
@@ -147,7 +147,7 @@ class RTP:
 
     @payloadType.setter
     def payloadType(self, p: PayloadType) -> None:
-        if type(p) == PayloadType:
+        if type(p) is PayloadType:
             self._payloadType = p
         else:
             raise AttributeError("PayloadType value must be PayloadType")
@@ -158,7 +158,7 @@ class RTP:
 
     @sequenceNumber.setter
     def sequenceNumber(self, s: int) -> None:
-        if type(s) != int:
+        if type(s) is not int:
             raise AttributeError("SequenceNumber value must be integer")
         elif (s < 0) or (s >= 2**16):
             raise ValueError("SequenceNumber must be in range 0-2**16")
@@ -171,7 +171,7 @@ class RTP:
 
     @timestamp.setter
     def timestamp(self, t: int) -> None:
-        if type(t) != int:
+        if type(t) is not int:
             raise AttributeError("Timestamp value must be integer")
         elif (t < 0) or (t >= 2**32):
             raise ValueError("Timestamp must be in range 0-2**32")
@@ -184,7 +184,7 @@ class RTP:
 
     @ssrc.setter
     def ssrc(self, s: int) -> None:
-        if type(s) != int:
+        if type(s) is not int:
             raise AttributeError("SSRC value must be integer")
         elif (s < 0) or (s >= 2**32):
             raise ValueError("SSRC must be in range 0-2**32")
@@ -201,12 +201,12 @@ class RTP:
 
     @payload.setter
     def payload(self, p: bytearray) -> None:
-        if type(p) != bytearray:
+        if type(p) is not bytearray:
             raise AttributeError("Payload value must be bytearray")
         else:
             self._payload = p
 
-    def fromBytearray(self, packet: bytearray) -> RTP:
+    def fromBytearray(self, packet: bytearray) -> 'RTP':
         '''
         Populate instance from a bytearray.
         '''
@@ -292,7 +292,7 @@ class RTP:
 
         return packet
 
-    def fromBytes(self, packet: bytes) -> RTP:
+    def fromBytes(self, packet: bytes) -> 'RTP':
         '''
         Populate instance from bytes.
         '''

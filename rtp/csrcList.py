@@ -24,7 +24,7 @@ class CSRCList(UserList):
     RFC 3550. The list size is ``0-15``. CSRC values are ``0 <= x < 2**32``.
     '''
 
-    def __init__(self, inList: Union[List[int], CSRCList] = []) -> None:
+    def __init__(self, inList: Union[List[int], 'CSRCList'] = []) -> None:
         if len(inList) > 15:
             raise LengthError("CSRC list length too long. Max length is 15.")
 
@@ -34,12 +34,12 @@ class CSRCList(UserList):
             self._csrcIsValid(x)
             self.data.append(x)
 
-    def __add__(self, value: Iterable[int]) -> CSRCList:
+    def __add__(self, value: Iterable[int]) -> 'CSRCList':
         newList = CSRCList(self)
         newList += value
         return newList
 
-    def __iadd__(self, value: Iterable[int]) -> CSRCList:
+    def __iadd__(self, value: Iterable[int]) -> 'CSRCList':
         self.extend(value)
 
         return self
@@ -87,7 +87,7 @@ class CSRCList(UserList):
         self.data.insert(i, x)
 
     def _csrcIsValid(self, value: int) -> None:
-        if type(value) != int:
+        if type(value) is not int:
             raise AttributeError(
                 "CSRC values must be unsigned 32-bit integers")
         elif (value < 0) or (value >= 2**32):
