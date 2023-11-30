@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import annotations
 from collections import UserList
 from typing import Iterable, List, Union
 from .errors import LengthError
