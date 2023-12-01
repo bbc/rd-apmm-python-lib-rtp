@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import annotations
+from typing import Optional
 from .errors import LengthError
 
 
@@ -29,8 +29,8 @@ class Extension:
 
     def __init__(
        self,
-       startBits: bytearray = None,
-       headerExtension: bytearray = None) -> None:
+       startBits: Optional[bytearray] = None,
+       headerExtension: Optional[bytearray] = None) -> None:
 
         self.startBits = bytearray(2)
         self.headerExtension = bytearray()
@@ -45,7 +45,7 @@ class Extension:
         if not isinstance(other, Extension):
             return NotImplemented
         return (
-            (type(self) == type(other)) and
+            (type(self) is type(other)) and
             (self.startBits == other.startBits) and
             (self.headerExtension == other.headerExtension))
 
@@ -55,7 +55,7 @@ class Extension:
 
     @startBits.setter
     def startBits(self, s: bytearray) -> None:
-        if type(s) != bytearray:
+        if type(s) is not bytearray:
             raise AttributeError("Extension startBits must be bytearray")
         elif len(s) != 2:
             raise LengthError("Extension startBits must be 2 bytes long")
@@ -68,7 +68,7 @@ class Extension:
 
     @headerExtension.setter
     def headerExtension(self, s: bytearray) -> None:
-        if type(s) != bytearray:
+        if type(s) is not bytearray:
             raise AttributeError("Extension headerExtension must be bytearray")
         elif (len(s) % 4) != 0:
             raise LengthError(
@@ -79,7 +79,7 @@ class Extension:
         else:
             self._headerExtension = s
 
-    def fromBytearray(self, inBytes: bytearray) -> Extension:
+    def fromBytearray(self, inBytes: bytearray) -> 'Extension':
         '''
         Populate instance from a bytearray.
         '''
