@@ -15,7 +15,7 @@ on:
       - '.github/workflows/**'
       - '!.github/workflows/ci-workflow.yml'
     branches:
-      - 'main'
+      - 'master'
 
   workflow_dispatch:
 
