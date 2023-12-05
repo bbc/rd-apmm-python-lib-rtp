@@ -12,6 +12,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     needs: ci
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    environment:
+      name: publish-packages
     steps:
       - uses: actions/checkout@v4
 
